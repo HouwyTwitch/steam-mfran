@@ -1,0 +1,19 @@
+# runtime data: Steam session (refresh token!), settings, caches
+data/
+*.session.json
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
