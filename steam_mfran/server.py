@@ -182,6 +182,11 @@ def create_app(
         await backend.cancel_login()
         return backend.auth_state()
 
+    @app.post("/api/auth/retry")
+    async def retry() -> dict[str, Any]:
+        await backend.retry()
+        return backend.auth_state()
+
     @app.post("/api/auth/logout")
     async def logout() -> dict[str, Any]:
         await backend.logout()

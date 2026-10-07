@@ -114,6 +114,8 @@ class LiveChat:
 
     def _on_cm_state(self, state: str) -> None:
         self.emit("chat:status", self.status())
+        if state == "online" and self._me():
+            asyncio.ensure_future(self.request_personas([self.me]))
 
     # ------------------------------------------------------------ transport
     async def _call(self, method: str, request: dict[str, Any], http_method: str = "POST") -> dict[str, Any]:

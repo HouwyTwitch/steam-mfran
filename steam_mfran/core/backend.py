@@ -34,6 +34,7 @@ class LiveBackend:
         self.community = Community(self.http, lambda: self.session.steamid)
         self.prices = PriceService(self.http, data_dir / "cache", price_provider)
         self.inventory_limiter = RateLimiter(inventory_interval)
+        self.profile_limiter = RateLimiter(0.6)
         self.chat = LiveChat(
             self.http, self.community,
             my_steamid=lambda: self.session.steamid,
@@ -85,6 +86,10 @@ class LiveBackend:
         await self.chat.stop()
         await self.session.logout()
 
+    async def retry(self) -> None:
+        if self.session.state in ("error", "starting"):
+            await self.session.restore()
+
     async def _with_session(self, fn: Callable[[], Awaitable[T]]) -> T:
         """Run ``fn``; on an expired web session refresh once and retry."""
         try:
@@ -101,6 +106,7 @@ class LiveBackend:
         return await self._with_session(lambda: self.community.friend_action(action, steamids))
 
     async def fetch_profile(self, steamid: int) -> ProfileInfo:
+        await self.profile_limiter.wait()
         return await self.community.get_profile(steamid)
 
     async def fetch_inventory(self, steamid: int) -> Inventory:

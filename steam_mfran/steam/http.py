@@ -171,10 +171,12 @@ class SteamHttp:
                     return resp, body
             except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as exc:
                 if attempt >= retries:
-                    raise SteamError(f"network error talking to {URL(url).host}: {exc}") from exc
+                    raise SteamError(f"Network error talking to {URL(url).host}: {exc or 'timeout'}") from exc
                 log.debug("%s %s failed (%s), retrying", method, url, exc)
                 await asyncio.sleep(delay)
                 delay *= 2
+            except aiohttp.ClientError as exc:  # e.g. proxy refused the CONNECT
+                raise SteamError(f"Network error talking to {URL(url).host}: {exc}") from exc
         raise AssertionError("unreachable")
 
     async def get_json(self, url: str, **kwargs: Any) -> Any:

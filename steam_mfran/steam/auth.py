@@ -109,6 +109,9 @@ class SteamAuthenticator:
             "remember_login": True,
             "persistence": ESessionPersistence.Persistent,
             "website_id": "Community",
+            # Sent by Steam's own login page (ELanguage, 0 = English); aiosteampy notes
+            # Steam started requiring it.
+            "language": 0,
             "device_details": {
                 "device_friendly_name": self.http.user_agent,
                 "platform_type": EAuthTokenPlatformType.WebBrowser,

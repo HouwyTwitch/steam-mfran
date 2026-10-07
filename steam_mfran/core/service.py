@@ -76,6 +76,7 @@ class AppService:
         self.last_refresh: float | None = None
         self.refresh_error: str | None = None
         self.currency: dict[str, Any] = {"code": "USD", "rate": 1.0}
+        self._previews: dict[str, tuple[Any, str, bool]] = {}
 
     def emit(self, type_: str, data: Any = None) -> None:
         self.hub.emit(type_, data)
@@ -88,13 +89,20 @@ class AppService:
     async def start(self) -> None:
         self.backend.on_auth_change = self._on_auth_change
         self.backend.chat.on_relationships = self._on_relationships
-        await self.backend.start()
         s = self.settings.value
-        self._tasks = [asyncio.create_task(self._poll_loop(), name="invites-poll")]
+        # Restoring the Steam session can take a while; serve the UI meanwhile.
+        self._tasks = [asyncio.create_task(self._start_backend(), name="backend-start")]
+        self._tasks.append(asyncio.create_task(self._poll_loop(), name="invites-poll"))
         self._tasks += [
             asyncio.create_task(self._worker(), name=f"analysis-{i}") for i in range(s.analysis_workers)
         ]
         self._tasks.append(asyncio.create_task(self._warm_prices(), name="prices-warmup"))
+
+    async def _start_backend(self) -> None:
+        try:
+            await self.backend.start()
+        except Exception:  # noqa: BLE001
+            log.exception("Backend start failed")
 
     async def stop(self) -> None:
         for t in self._tasks:
@@ -531,7 +539,30 @@ class AppService:
         if missing:
             asyncio.ensure_future(chat.request_personas(missing))
         sessions.sort(key=lambda s: s.get("last_message", 0), reverse=True)
+        await self._attach_previews(sessions[:25])
         return sessions
+
+    async def _attach_previews(self, sessions: list[dict[str, Any]]) -> None:
+        """Last message text for the conversation list (cached per last_message time)."""
+        sem = asyncio.Semaphore(4)
+
+        async def one(s: dict[str, Any]) -> None:
+            key = s["partner"]
+            cached = self._previews.get(key)
+            if cached and cached[0] == s.get("last_message"):
+                s["preview"], s["preview_out"] = cached[1], cached[2]
+                return
+            async with sem:
+                try:
+                    hist = await self.backend.chat.history(int(key), count=1)
+                except Exception:  # noqa: BLE001 - previews are best effort
+                    return
+            if hist.get("messages"):
+                m = hist["messages"][-1]
+                s["preview"], s["preview_out"] = m["text"], m["outgoing"]
+                self._previews[key] = (s.get("last_message"), m["text"], m["outgoing"])
+
+        await asyncio.gather(*(one(s) for s in sessions))
 
     def friends(self) -> list[dict[str, Any]]:
         friends = self.backend.chat.friend_list()

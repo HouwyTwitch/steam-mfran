@@ -40,6 +40,7 @@ class Settings(BaseModel):
     currency: str = "USD"
     theme: Literal["system", "light", "dark"] = "system"
     accent: str | None = None  # hex seed colour; None = derive from avatar
+    palette: Literal["tonal", "vibrant", "expressive"] = "vibrant"
     auto_analyze: bool = True
     invites_poll_seconds: int = 90
     inventory_interval_seconds: float = 4.0

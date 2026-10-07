@@ -283,6 +283,9 @@ class DemoBackend:
     async def logout(self) -> None:
         self._set("logged_out")
 
+    async def retry(self) -> None:
+        return None
+
     def _new_invite(self) -> None:
         if self.state != "authenticated":
             return

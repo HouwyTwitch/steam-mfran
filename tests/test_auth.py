@@ -92,7 +92,7 @@ async def test_full_login_with_device_code(fake_http):
 
     req = state["begin"]
     assert req["account_name"] == "houwy"
-    assert req["website_id"] == "Community"
+    assert req["website_id"] == "Community" and req["language"] == 0
     assert req["persistence"] == 1 and req["remember_login"] is True and "platform_type" not in req
     assert req["device_details"]["platform_type"] == 2
     assert rsa.decrypt(base64.b64decode(req["encrypted_password"]), PRIV) == b"hunter2"
