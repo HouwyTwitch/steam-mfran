@@ -18,10 +18,17 @@ from .enums import EResult
 
 log = logging.getLogger(__name__)
 
+CHROME_VERSION = "156"
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    f"(KHTML, like Gecko) Chrome/{CHROME_VERSION}.0.0.0 Safari/537.36"
 )
+# Client hints Chrome sends alongside that user agent
+CLIENT_HINTS = {
+    "sec-ch-ua": f'"Not:A-Brand";v="8", "Chromium";v="{CHROME_VERSION}", "Google Chrome";v="{CHROME_VERSION}"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+}
 COMMUNITY = "https://steamcommunity.com"
 STORE = "https://store.steampowered.com"
 WEBAPI = "https://api.steampowered.com"
@@ -35,6 +42,15 @@ API_HEADERS = {
     "Sec-Fetch-Dest": "empty",
     "Origin": COMMUNITY,
     "Referer": COMMUNITY + "/",
+}
+
+# Headers of the XHRs steamcommunity.com pages make to their own endpoints
+COMMUNITY_XHR_HEADERS = {
+    "Accept": "*/*",
+    "X-Requested-With": "XMLHttpRequest",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Dest": "empty",
 }
 
 COOKIE_DOMAINS = ("steamcommunity.com", "store.steampowered.com", "help.steampowered.com")
@@ -91,14 +107,19 @@ class SteamHttp:
         # Created lazily: aiohttp wants a running event loop at construction.
         if self._jar is None:
             self._jar = aiohttp.CookieJar()
+            self._seed_cookies()
         return self._jar
+
+    def _seed_cookies(self) -> None:
+        # Every browser on steamcommunity.com carries this; some endpoints localise by it.
+        self.set_cookie("steamcommunity.com", "Steam_Language", "english")
 
     @property
     def session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
                 cookie_jar=self.jar,
-                headers={"User-Agent": self.user_agent, "Accept-Language": "en-US,en;q=0.9"},
+                headers={"User-Agent": self.user_agent, "Accept-Language": "en-US,en;q=0.9", **CLIENT_HINTS},
                 timeout=aiohttp.ClientTimeout(total=40, connect=15),
                 trust_env=True,
             )
@@ -120,6 +141,7 @@ class SteamHttp:
 
     def clear_cookies(self) -> None:
         self.jar.clear()
+        self._seed_cookies()
 
     @property
     def session_id(self) -> str:

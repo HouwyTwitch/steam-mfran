@@ -110,7 +110,7 @@ class LiveBackend:
         return await self.community.get_profile(steamid)
 
     async def fetch_inventory(self, steamid: int) -> Inventory:
-        inv = await fetch_cs2_inventory(self.http, steamid, self.inventory_limiter)
+        inv = await self._with_session(lambda: fetch_cs2_inventory(self.http, steamid, self.inventory_limiter))
         await self.prices.price_inventory(inv)
         return inv
 

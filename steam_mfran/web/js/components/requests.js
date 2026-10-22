@@ -188,7 +188,8 @@ function ValueBlock({ r }) {
     return html`<div class="value"><div class="col" style="gap:0"><span class="amount">${money(0)}</span><span class="body-s muted">No CS2 items</span></div></div>`;
   }
   if (inv.state === "error") {
-    return html`<div class="value"><div class="row grow"><${Icon} name="error" /><span class="body-m grow">Inventory unavailable</span>
+    return html`<div class="value"><div class="row grow"><${Icon} name="error" /><div class="col grow" style="gap:0;min-width:0"><span class="title-s">Inventory unavailable</span>
+      ${inv.error ? html`<span class="body-s muted ellipsis" title=${inv.error}>${inv.error}</span>` : null}</div>
       <button class="btn text sm" onClick=${(e) => { e.stopPropagation(); analyze([r.steamid]); }}>Retry</button></div></div>`;
   }
   const big = (inv.value || 0) >= 100;

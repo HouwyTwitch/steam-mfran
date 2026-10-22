@@ -35,6 +35,9 @@ function Detail({ r }) {
   const pending = r.status === "pending";
   const close = () => (detailId.value = null);
   const items = (inv?.items || []).filter((i) => !q || i.name.toLowerCase().includes(q.toLowerCase()));
+  // A fresh load knows better than the summary stored with the request.
+  const state = inv?.state || r.inventory?.state;
+  const failure = err || (state === "error" ? inv?.error || r.inventory?.error || "Steam didn’t return the inventory" : null);
   const fl = flags(r);
   return html`
     <div class="hero">
@@ -79,10 +82,10 @@ function Detail({ r }) {
         <span class="spacer"></span>
         ${inv ? html`<span class="body-s muted">fetched ${ago(inv.fetched_at)}</span>` : null}
       </div>
-      ${r.inventory?.state === "private" ? html`<div class="body-m muted" style="padding:0 20px 20px">This inventory is private.</div>`
-        : r.inventory?.state === "empty" ? html`<div class="body-m muted" style="padding:0 20px 20px">No CS2 items.</div>`
-        : loading ? html`<div class="row" style="justify-content:center;padding:32px"><${Loader} size=${48} /></div>`
-        : err ? html`<div class="row" style="padding:0 20px 20px"><span class="body-m" style="color:var(--error)">${err}</span><button class="btn text sm" onClick=${() => load(true)}>Retry</button></div>`
+      ${loading ? html`<div class="row" style="justify-content:center;padding:32px"><${Loader} size=${48} /></div>`
+        : failure ? html`<div class="row" style="padding:0 20px 20px"><span class="body-m grow" style="color:var(--error)">${failure}</span><button class="btn text sm" onClick=${() => load(true)}>Retry</button></div>`
+        : state === "private" ? html`<div class="body-m muted" style="padding:0 20px 20px">This inventory is private.</div>`
+        : state === "empty" ? html`<div class="body-m muted" style="padding:0 20px 20px">No CS2 items.</div>`
         : !inv ? html`<div class="row" style="padding:0 20px 20px"><span class="body-m muted grow">Not loaded.</span><button class="btn tonal sm" onClick=${() => load(true)}>Load inventory</button></div>`
         : html`
           ${inv.items.length > 8 ? html`<div style="padding:0 16px 8px"><label class="field compact"><${Icon} name="search" /><input placeholder="Filter items" value=${q} onInput=${(e) => setQ(e.target.value)} /></label></div>` : null}

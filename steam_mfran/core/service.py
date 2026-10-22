@@ -25,6 +25,19 @@ log = logging.getLogger(__name__)
 
 STATUS_FOR_ACTION = {"accept": "accepted", "ignore": "ignored", "block": "blocked"}
 RETRYABLE_SEND = {EResult.RateLimitExceeded, EResult.Busy, EResult.ServiceUnavailable, EResult.Timeout}
+# Bump when inventory fetching changes so summaries cached by older versions are refetched.
+INVENTORY_CACHE_VERSION = 2
+
+
+def cached_inventory(cache: dict[str, Any]) -> dict[str, Any] | None:
+    inv = cache.get("inventory")
+    if inv and cache.get("inventory_v") == INVENTORY_CACHE_VERSION and inv.get("state") != "error":
+        return inv
+    return None
+
+
+def store_inventory(cache: dict[str, Any], summary: dict[str, Any]) -> None:
+    cache["inventory"], cache["inventory_at"], cache["inventory_v"] = summary, time.time(), INVENTORY_CACHE_VERSION
 
 
 class AnalysisQueue:
@@ -173,7 +186,7 @@ class AppService:
             "first_seen": first_seen,
             "status": "pending",
             "profile": cached.get("profile"),
-            "inventory": cached.get("inventory"),
+            "inventory": cached_inventory(cached),
             "analysis": {"state": "idle"},
             "rule": None,
         }
@@ -307,12 +320,14 @@ class AppService:
 
             self._set_analysis(rec, "running", step="inventory")
             ttl = self.settings.value.inventory_cache_hours * 3600
-            if force or not cache.get("inventory") or now - cache.get("inventory_at", 0) > ttl:
+            summary = cached_inventory(cache)
+            if force or not summary or now - cache.get("inventory_at", 0) > ttl:
                 inv = await self.backend.fetch_inventory(sid)
                 self._remember_details(inv)
-                cache["inventory"] = summarize(inv)
-                cache["inventory_at"] = time.time()
-            rec["inventory"] = cache["inventory"]
+                summary = summarize(inv)
+                if inv.state != "error":  # failures are retried next time, not cached
+                    store_inventory(cache, summary)
+            rec["inventory"] = summary
             self._rate_backoff = 60.0
             self._save_cache_soon()
             rule = first_match(rec, self.settings.value.rules)
@@ -351,8 +366,7 @@ class AppService:
             self._remember_details(inv)
             if sid in self.records and inv.state != "error":
                 summary = summarize(inv)
-                cache = self._cache.setdefault(str(sid), {})
-                cache["inventory"], cache["inventory_at"] = summary, time.time()
+                store_inventory(self._cache.setdefault(str(sid), {}), summary)
                 self.records[sid]["inventory"] = summary
                 self._emit_record(self.records[sid])
                 self._save_cache_soon()

@@ -8,7 +8,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from .http import COMMUNITY, RateLimiter, SteamError, SteamHttp
+from .http import COMMUNITY, COMMUNITY_XHR_HEADERS, RateLimiter, SessionExpired, SteamError, SteamHttp
 
 log = logging.getLogger(__name__)
 
@@ -89,47 +89,70 @@ def aggregate(assets: list[dict], descriptions: list[dict]) -> list[InventoryIte
     return list(grouped.values())
 
 
+# Steam's own inventory page asks for a small first page, then pages of 2000
+# (the most the endpoint accepts).
+FIRST_PAGE = 75
+PAGE_SIZE = 2000
+
+
+def _steam_message(body: bytes) -> str:
+    """Best-effort human text out of an error body ("null", JSON or HTML)."""
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return ""
+    if isinstance(data, dict):
+        return str(data.get("error") or data.get("Error") or data.get("message") or "")
+    return ""
+
+
 async def fetch_cs2_inventory(
     http: SteamHttp,
     steamid: int,
     limiter: RateLimiter | None = None,
     max_pages: int = 10,
 ) -> Inventory:
-    """Fetch every page of a user's CS2 inventory.
+    """Fetch every page of a user's CS2 inventory the way steamcommunity.com does.
 
-    Raises :class:`RateLimited` on HTTP 429 so the caller can back off.
+    Raises :class:`RateLimited` on HTTP 429 so the caller can back off, and
+    :class:`SessionExpired` on HTTP 401.
     """
     url = f"{COMMUNITY}/inventory/{steamid}/{CS2_APPID}/2"
-    params = {"l": "english", "count": "2000"}
+    headers = {**COMMUNITY_XHR_HEADERS, "Referer": f"{COMMUNITY}/profiles/{steamid}/inventory/"}
+    params = {"l": "english", "count": str(FIRST_PAGE), "preserve_bbcode": "1", "raw_asset_properties": "1"}
     assets: list[dict] = []
     descriptions: list[dict] = []
     total = 0
     for _ in range(max_pages):
         if limiter:
             await limiter.wait()
-        resp, body = await http.request(
-            "GET", url, params=params, retries=1,
-            headers={"Referer": f"{COMMUNITY}/profiles/{steamid}/inventory/", "Accept": "application/json"},
-        )
-        if resp.status in (401, 403):
-            return Inventory(steamid, "private")
-        if resp.status >= 400:
-            return Inventory(steamid, "error", error=f"HTTP {resp.status}")
+        resp, body = await http.request("GET", url, params=dict(params), headers=headers, retries=1)
+        if resp.status != 200:
+            msg = _steam_message(body)
+            log.warning("Inventory of %s: HTTP %s %s", steamid, resp.status, body[:200])
+            if resp.status == 401:
+                raise SessionExpired(f"inventory returned HTTP 401{f': {msg}' if msg else ''}")
+            if resp.status == 403:
+                return Inventory(steamid, "private")
+            return Inventory(steamid, "error", error=f"Steam answered HTTP {resp.status}{f': {msg}' if msg else ''}")
         try:
             data = json.loads(body or b"null")
         except ValueError:
-            return Inventory(steamid, "error", error="invalid response")
-        if data is None:
+            log.warning("Inventory of %s: unexpected body %r", steamid, body[:200])
+            return Inventory(steamid, "error", error="Steam sent an unreadable inventory")
+        if not data:
             return Inventory(steamid, "private")
         if not data.get("success"):
-            err = data.get("error") or data.get("Error") or "Steam returned success=false"
-            if "private" in str(err).lower():
+            err = _steam_message(body) or "Steam reported failure"
+            log.warning("Inventory of %s: %s", steamid, body[:200])
+            if "private" in err.lower():
                 return Inventory(steamid, "private")
-            return Inventory(steamid, "error", error=str(err))
+            return Inventory(steamid, "error", error=err)
         total = int(data.get("total_inventory_count") or 0)
         assets.extend(data.get("assets") or [])
         descriptions.extend(data.get("descriptions") or [])
         if data.get("more_items") and data.get("last_assetid"):
+            params["count"] = str(PAGE_SIZE)
             params["start_assetid"] = str(data["last_assetid"])
             continue
         break
