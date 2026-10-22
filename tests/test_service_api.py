@@ -1,0 +1,119 @@
+"""AppService + HTTP API against the demo backend."""
+
+import asyncio
+
+import pytest
+from fastapi.testclient import TestClient
+
+from steam_mfran.core.demo import DemoBackend
+from steam_mfran.core.events import EventHub
+from steam_mfran.core.service import AppService
+from steam_mfran.core.settings import Rule, RuleConditions, SettingsStore
+from steam_mfran.server import create_app
+from steam_mfran.storage import JsonStore
+
+
+async def wait_for(predicate, timeout=10.0):
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    while not predicate():
+        if loop.time() > deadline:
+            raise AssertionError("condition not met in time")
+        await asyncio.sleep(0.05)
+
+
+@pytest.fixture
+async def service(tmp_path):
+    hub = EventHub()
+    settings = SettingsStore(JsonStore(tmp_path / "settings.json"))
+    settings.update({"analysis_workers": 4})
+    backend = DemoBackend(tmp_path, hub.emit)
+    svc = AppService(backend, settings, tmp_path, hub)
+    await svc.start()
+    await backend.login("me", "pw")
+    await backend.submit_code("ABCDE")
+    yield svc
+    await svc.stop()
+
+
+async def test_invites_are_fetched_and_analysed(service):
+    await wait_for(lambda: len(service.records) == 24)
+    await wait_for(lambda: all(r["analysis"]["state"] in ("done", "error") for r in service.records.values()), 30)
+    states = {r["inventory"]["state"] for r in service.records.values() if r.get("inventory")}
+    assert {"ok", "private"} <= states
+    rich = max(service.records.values(), key=lambda r: (r.get("inventory") or {}).get("value") or 0)
+    assert rich["inventory"]["value"] > 0 and rich["inventory"]["top_items"]
+    assert rich["profile"]["member_since"]
+
+
+async def test_bulk_accept_then_message(service):
+    await wait_for(lambda: len(service.records) == 24)
+    sids = [int(s) for s in list(map(str, service.records))[:3]]
+    service.settings.update({"broadcast_interval_seconds": 0.5})
+    result = await service.act("accept", sids, message="welcome!")
+    assert all(v is None for v in result["results"].values())
+    assert all(service.records[s]["status"] == "accepted" for s in sids)
+    job = service.broadcasts[result["broadcast"]["id"]]
+    await wait_for(lambda: job["state"] == "done", 20)
+    assert job["sent"] == 3 and job["failed"] == 0
+    assert service.history[-1]["action"] == "accept"
+
+
+async def test_automation_rules_apply_after_analysis(service):
+    await service.update_settings({
+        "automation_enabled": True,
+        "rules": [Rule(name="no private", action="ignore", conditions=RuleConditions(inventory="private")).model_dump()],
+    })
+    await wait_for(lambda: len(service.records) == 24)
+    await wait_for(lambda: all(r["analysis"]["state"] in ("done", "error") for r in service.records.values()), 30)
+    await wait_for(lambda: all(r["status"] == "ignored" for r in service.records.values()
+                               if (r.get("inventory") or {}).get("state") == "private"))
+    assert any(h["source"] == "rule: no private" for h in service.history)
+
+
+def test_http_api_demo_flow(tmp_path):
+    app = create_app(tmp_path, demo=True)
+    with TestClient(app, base_url="http://127.0.0.1:8777") as client:
+        assert client.get("/api/state").json()["auth"]["state"] == "logged_out"
+        assert client.post("/api/invites/refresh").status_code == 401
+        r = client.post("/api/auth/login", json={"username": "me", "password": "pw"})
+        assert r.json()["state"] == "awaiting_guard"
+        assert client.post("/api/auth/code", json={"code": "nope"}).status_code == 400
+        assert client.post("/api/auth/code", json={"code": "abcde"}).json()["state"] == "authenticated"
+        client.post("/api/invites/refresh")
+        items = client.get("/api/state").json()["invites"]["items"]
+        assert len(items) == 24
+        r = client.post("/api/invites/action", json={"action": "ignore", "steamids": [items[0]["steamid"]]})
+        assert r.json()["results"] == {items[0]["steamid"]: None}
+        convs = client.get("/api/chat/conversations").json()
+        assert convs and convs[0]["persona"]["name"]
+        msg = client.post(f"/api/chat/{convs[0]['partner']}/send", json={"text": "hey"}).json()
+        assert msg["outgoing"] and msg["text"] == "hey"
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + (64).to_bytes(4, "big") + (32).to_bytes(4, "big") + b"\x08\x02"
+        r = client.post(f"/api/chat/{convs[0]['partner']}/image", files={"file": ("a.png", png, "image/png")})
+        assert r.status_code == 200 and r.json()["url"].startswith("data:image/png")
+        assert client.post(f"/api/chat/{convs[0]['partner']}/image", files={"file": ("a.txt", b"hello", "text/plain")}).status_code == 400
+        s = client.put("/api/settings", json={"currency": "eur", "theme": "dark"}).json()
+        assert s["currency"] == "EUR" and s["theme"] == "dark"
+        assert client.get("/").status_code == 200
+        with client.websocket_connect("/api/events", headers={"host": "127.0.0.1:8777"}) as ws:
+            assert ws.receive_json()["type"] == "snapshot"
+
+
+def test_host_and_origin_guards(tmp_path):
+    with TestClient(create_app(tmp_path, demo=True), base_url="http://127.0.0.1:8777") as client:
+        assert client.get("/api/state", headers={"Host": "attacker.example"}).status_code == 403
+        r = client.post("/api/auth/logout", headers={"Origin": "https://attacker.example"})
+        assert r.status_code == 403
+        from starlette.websockets import WebSocketDisconnect
+        with pytest.raises(WebSocketDisconnect):
+            with client.websocket_connect("/api/events", headers={"host": "127.0.0.1:8777",
+                                                                  "origin": "https://attacker.example"}) as ws:
+                ws.receive_json()
+
+
+def test_access_token(tmp_path):
+    with TestClient(create_app(tmp_path, demo=True, token="s3cret"), base_url="http://127.0.0.1:8777") as client:
+        assert client.get("/api/state").status_code == 401
+        assert client.get("/?token=s3cret").status_code == 200  # sets the cookie
+        assert client.get("/api/state").status_code == 200

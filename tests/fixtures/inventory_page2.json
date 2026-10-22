@@ -1,0 +1,256 @@
+{
+ "assets": [
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "53846838644",
+   "classid": "4141780734",
+   "instanceid": "6276616856",
+   "amount": "1"
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "53846769212",
+   "classid": "4141786221",
+   "instanceid": "6276414058",
+   "amount": "1"
+  }
+ ],
+ "descriptions": [
+  {
+   "appid": 730,
+   "classid": "4141780734",
+   "instanceid": "6276616856",
+   "currency": 0,
+   "background_color": "3d293f",
+   "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIa-2lmxU-LR0dnuNm6E8Vl45Iv181z1fgn8oYby8iRe_OGnZ6psLM-FD3WXj7536LVoFivmkEghsWXQmd37IniRPwUoCMFwEeAItxCwkdXvNr624wXAy9USEc8H9qQ",
+   "descriptions": [
+    {
+     "type": "html",
+     "value": "Weird, quirky, unhinged; a few words that describe The Professionals' safecracker and technical mastermind. When she is not mumbling to herself about the flawed assumptions inherent within the profit maximization paradox, Safecracker serves as a morally questionable but highly efficient 'fundraising expert.' She enjoys short walks on pavement, the sound of cable ties being fastened, and testing explosive prototypes under immense pressure.\n\n<i>Don't blow it. DO blow the bomb though, okay? We do want that.</i>",
+     "name": "description"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "Broken Fang Agents",
+     "color": "9da1a9",
+     "name": "itemset_name"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "<br><div id=\"sticker_info\" class=\"sticker_info\" style=\"border: 2px solid rgb(102, 102, 102); border-radius: 6px; width=100; margin:4px; padding:8px;\"><center><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/patches/case_skillgroups/patch_globalelite2.af50fd126bb48687763911e4248e1d5825aa531c.png\" title=\"Patch: Metal The Global Elite\"><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/patches/case_skillgroups/patch_silver.3f8cda8378e0fb17a339d4ffffc05c7e257f1b8c.png\" title=\"Patch: Metal Silver\"><br>Patch: Metal The Global Elite, Metal Silver</center></div>",
+     "name": "sticker_info"
+    }
+   ],
+   "tradable": 1,
+   "actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "name": "Safecracker Voltzmann | The Professionals",
+   "name_color": "d32ce6",
+   "type": "Superior Agent",
+   "market_name": "Safecracker Voltzmann | The Professionals",
+   "market_hash_name": "Safecracker Voltzmann | The Professionals",
+   "market_actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "commodity": 0,
+   "market_tradable_restriction": 7,
+   "market_marketable_restriction": 7,
+   "marketable": 1,
+   "tags": [
+    {
+     "category": "Type",
+     "internal_name": "Type_CustomPlayer",
+     "localized_category_name": "Type",
+     "localized_tag_name": "Agent"
+    },
+    {
+     "category": "ItemSet",
+     "internal_name": "set_op10_characters",
+     "localized_category_name": "Collection",
+     "localized_tag_name": "Broken Fang Agents"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "normal",
+     "localized_category_name": "Category",
+     "localized_tag_name": "Normal"
+    },
+    {
+     "category": "Rarity",
+     "internal_name": "Rarity_Legendary_Character",
+     "localized_category_name": "Quality",
+     "localized_tag_name": "Superior",
+     "color": "d32ce6"
+    }
+   ],
+   "sealed": 0,
+   "market_bucket_group_name": "Safecracker Voltzmann | The Professionals",
+   "market_bucket_group_id": "G18F7243004",
+   "sealed_type": 0,
+   "market_name_inside_group": "Normal",
+   "market_bucket_id": "18F7243004"
+  },
+  {
+   "appid": 730,
+   "classid": "4141786221",
+   "instanceid": "6276414058",
+   "currency": 0,
+   "background_color": "342c42",
+   "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIa-2lmxU-LR0dnuNm6E8Vl45Iv181z1fgn8oYby8iRe_OGnZ6psLM-FD3Waj-0h4LM5H3jjzR9-4zmHzIuucXOWaAEkCsR5FrFcsEG5wNGzNeng71TAy9UScc7Ksy8",
+   "descriptions": [
+    {
+     "type": "html",
+     "value": "Small enough to hide in plain sight but loud enough to frighten the biggest enemies, Getaway Sally is The Professionals' first pick for tight quarter Wealth Acquisition Projects.  A talented weaver of controlled chaos, Getaway Sally has the improvisational skills to turn the tables on any dire heist and hostage situations. \n\n<i>Now you don't see me, and now you still don't.</i>",
+     "name": "description"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "Broken Fang Agents",
+     "color": "9da1a9",
+     "name": "itemset_name"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "<br><div id=\"sticker_info\" class=\"sticker_info\" style=\"border: 2px solid rgb(102, 102, 102); border-radius: 6px; width=100%; margin:4px; padding:8px;\"><center><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/patches/stockh2021/patch_g2_gold.4e74163d314b53929f98091c819afab1eb5b5ece.png\" title=\"Patch: G2 Esports (Gold) | Stockholm 2021\"><br>Patch: G2 Esports (Gold) | Stockholm 2021</center></div>",
+     "name": "sticker_info"
+    }
+   ],
+   "tradable": 1,
+   "actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "name": "Getaway Sally | The Professionals",
+   "name_color": "8847ff",
+   "type": "Exceptional Agent",
+   "market_name": "Getaway Sally | The Professionals",
+   "market_hash_name": "Getaway Sally | The Professionals",
+   "market_actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "commodity": 0,
+   "market_tradable_restriction": 7,
+   "market_marketable_restriction": 7,
+   "marketable": 1,
+   "tags": [
+    {
+     "category": "Type",
+     "internal_name": "Type_CustomPlayer",
+     "localized_category_name": "Type",
+     "localized_tag_name": "Agent"
+    },
+    {
+     "category": "ItemSet",
+     "internal_name": "set_op10_characters",
+     "localized_category_name": "Collection",
+     "localized_tag_name": "Broken Fang Agents"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "normal",
+     "localized_category_name": "Category",
+     "localized_tag_name": "Normal"
+    },
+    {
+     "category": "Rarity",
+     "internal_name": "Rarity_Mythical_Character",
+     "localized_category_name": "Quality",
+     "localized_tag_name": "Exceptional",
+     "color": "8847ff"
+    },
+    {
+     "category": "Tournament",
+     "internal_name": "Tournament18",
+     "localized_category_name": "Tournament",
+     "localized_tag_name": "2021 PGL Stockholm"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team59",
+     "localized_category_name": "Team",
+     "localized_tag_name": "G2 Esports"
+    }
+   ],
+   "sealed": 0,
+   "market_bucket_group_name": "Getaway Sally | The Professionals",
+   "market_bucket_group_id": "G18FA243004",
+   "sealed_type": 0,
+   "market_name_inside_group": "Normal",
+   "market_bucket_id": "18FA243004"
+  }
+ ],
+ "asset_properties": [
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "53846838644",
+   "asset_properties": [
+    {
+     "propertyid": 6,
+     "string_value": "4C5CB8D6DA80844D54BB686C4C64497C482E46444D5C9568690E79C7732E46444E5C976F697E36C17324984D3C5B4611FB48"
+    }
+   ],
+   "asset_accessories": [
+    {
+     "classid": "4141783715"
+    },
+    {
+     "classid": "4141781038"
+    }
+   ]
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "53846769212",
+   "asset_properties": [
+    {
+     "propertyid": 6,
+     "string_value": "4A5AF6B6DB86824B52B06E6A4A624E7A4E2840424B5AAE6D6F988AD975229F4B3A5DC6FE48AA"
+    }
+   ],
+   "asset_accessories": [
+    {
+     "classid": "4614644688"
+    }
+   ]
+  }
+ ],
+ "total_inventory_count": 5,
+ "success": 1,
+ "rwgrsn": -2
+}

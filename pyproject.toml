@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steam-mfran"
+description = "Steam Multi Friend Requests Analyzer - triage incoming Steam friend requests fast"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dynamic = ["version"]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "aiohttp>=3.9",
+    "rsa>=4.9",
+    "beautifulsoup4>=4.12",
+    "python-multipart>=0.0.9",
+    "brotli>=1.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "httpx>=0.27"]
+
+[project.scripts]
+steam-mfran = "steam_mfran.__main__:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "steam_mfran.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["steam_mfran*"]
+
+[tool.setuptools.package-data]
+steam_mfran = ["web/**/*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]

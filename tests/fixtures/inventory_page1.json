@@ -1,0 +1,593 @@
+{
+ "assets": [
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54176784312",
+   "classid": "7993036281",
+   "instanceid": "302028390",
+   "amount": "1"
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54244336397",
+   "classid": "7993036215",
+   "instanceid": "302028390",
+   "amount": "1"
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54134636133",
+   "classid": "7993043403",
+   "instanceid": "9123789537",
+   "amount": "1"
+  }
+ ],
+ "descriptions": [
+  {
+   "appid": 730,
+   "classid": "7993036215",
+   "instanceid": "302028390",
+   "currency": 0,
+   "background_color": "2d3042",
+   "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLkjYbf7itX6vytbbZSM_-WMXOCzv5_s-BlcCS2kRQyvnOEy4v6dnzDZ1IgWJFyFu4K5hLqktLuN-jrtASK3o1HxCr_iClO530-_a9cBiau7NtK",
+   "descriptions": [
+    {
+     "type": "html",
+     "value": "Exterior: Field-Tested",
+     "name": "exterior_wear"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "A fan favorite from Counter-Strike Source, the Silenced USP Pistol has a detachable silencer that gives shots less recoil while suppressing attention-getting noise. A tropical green floral pattern has been applied. It has been finished with gold accents.\n\n<i>Keep this between us</i>",
+     "name": "description"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "The Boreal Collection",
+     "color": "9da1a9",
+     "name": "itemset_name"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    }
+   ],
+   "tradable": 1,
+   "actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "name": "USP-S | Tropical Breeze",
+   "name_color": "4b69ff",
+   "type": "Mil-Spec Grade Pistol",
+   "market_name": "USP-S | Tropical Breeze (Field-Tested)",
+   "market_hash_name": "USP-S | Tropical Breeze (Field-Tested)",
+   "market_actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "commodity": 0,
+   "market_tradable_restriction": 7,
+   "market_marketable_restriction": 7,
+   "marketable": 1,
+   "tags": [
+    {
+     "category": "Type",
+     "internal_name": "CSGO_Type_Pistol",
+     "localized_category_name": "Type",
+     "localized_tag_name": "Pistol"
+    },
+    {
+     "category": "Weapon",
+     "internal_name": "weapon_usp_silencer",
+     "localized_category_name": "Weapon",
+     "localized_tag_name": "USP-S"
+    },
+    {
+     "category": "ItemSet",
+     "internal_name": "set_timed_drops_neutral",
+     "localized_category_name": "Collection",
+     "localized_tag_name": "The Boreal Collection"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "normal",
+     "localized_category_name": "Category",
+     "localized_tag_name": "Normal"
+    },
+    {
+     "category": "Rarity",
+     "internal_name": "Rarity_Rare_Weapon",
+     "localized_category_name": "Quality",
+     "localized_tag_name": "Mil-Spec Grade",
+     "color": "4b69ff"
+    },
+    {
+     "category": "Exterior",
+     "internal_name": "WearCategory2",
+     "localized_category_name": "Exterior",
+     "localized_tag_name": "Field-Tested"
+    }
+   ],
+   "sealed": 0,
+   "market_bucket_group_name": "USP-S | Tropical Breeze",
+   "market_bucket_group_id": "G183D20840A3004",
+   "sealed_type": 0,
+   "market_name_inside_group": "Field-Tested",
+   "market_bucket_id": "183D20840A300438A4E1F5F503"
+  },
+  {
+   "appid": 730,
+   "classid": "7993036281",
+   "instanceid": "302028390",
+   "currency": 0,
+   "background_color": "393b3e",
+   "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyL8js_f7i1e0POieK1jJc-UHGKVz9F7teVgWiT9x0x3tmnUy4yqd3vEZgJ1XJshF7MMthi4kIDiN7_g7wOKjt9NySn_iTQJsHjOOu9Wrw",
+   "descriptions": [
+    {
+     "type": "html",
+     "value": "Exterior: Field-Tested",
+     "name": "exterior_wear"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "Manufactured in Switzerland, the cutting-edge MP9 SMG is an ergonomic polymer weapon favored by private security firms. It has been painted solid green.\n\n<i>Get in on the ground floor</i>",
+     "name": "description"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "The Boreal Collection",
+     "color": "9da1a9",
+     "name": "itemset_name"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    }
+   ],
+   "tradable": 1,
+   "actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "name": "MP9 | Pine",
+   "name_color": "b0c3d9",
+   "type": "Consumer Grade SMG",
+   "market_name": "MP9 | Pine (Field-Tested)",
+   "market_hash_name": "MP9 | Pine (Field-Tested)",
+   "market_actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "commodity": 0,
+   "market_tradable_restriction": 7,
+   "market_marketable_restriction": 7,
+   "marketable": 1,
+   "tags": [
+    {
+     "category": "Type",
+     "internal_name": "CSGO_Type_SMG",
+     "localized_category_name": "Type",
+     "localized_tag_name": "SMG"
+    },
+    {
+     "category": "Weapon",
+     "internal_name": "weapon_mp9",
+     "localized_category_name": "Weapon",
+     "localized_tag_name": "MP9"
+    },
+    {
+     "category": "ItemSet",
+     "internal_name": "set_timed_drops_neutral",
+     "localized_category_name": "Collection",
+     "localized_tag_name": "The Boreal Collection"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "normal",
+     "localized_category_name": "Category",
+     "localized_tag_name": "Normal"
+    },
+    {
+     "category": "Rarity",
+     "internal_name": "Rarity_Common_Weapon",
+     "localized_category_name": "Quality",
+     "localized_tag_name": "Consumer Grade",
+     "color": "b0c3d9"
+    },
+    {
+     "category": "Exterior",
+     "internal_name": "WearCategory2",
+     "localized_category_name": "Exterior",
+     "localized_tag_name": "Field-Tested"
+    }
+   ],
+   "sealed": 0,
+   "market_bucket_group_name": "MP9 | Pine",
+   "market_bucket_group_id": "G182220950A3004",
+   "sealed_type": 0,
+   "market_name_inside_group": "Field-Tested",
+   "market_bucket_id": "182220950A300438A4E1F5F503"
+  },
+  {
+   "appid": 730,
+   "classid": "7993043403",
+   "instanceid": "9123789537",
+   "currency": 0,
+   "background_color": "342c42",
+   "icon_url": "i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGIGz3UqlXOLrxM-vMGmW8VNxu5Dx60noTyLijZGwpR1I_PX-MJt5MvGdHW6E_vl-ufVscCW6khUz_WTSw479d3vDalIkCJNzFuIN4RHqw9K2P7nktQHf340Wyn-vh3wY7Sd1o7FV_lj0Yvg",
+   "descriptions": [
+    {
+     "type": "html",
+     "value": "Exterior: Factory New",
+     "name": "exterior_wear"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "This item features StatTrak™ technology, which tracks certain statistics when equipped by its owner.",
+     "color": "99ccff",
+     "name": "stattrak_type"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "This item tracks Confirmed Kills.",
+     "color": "CF6A32",
+     "name": "stattrak_score"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "Attached souvenir charm features a highlight from the Grand Final match between Vitality and The MongolZ at the BLAST.tv Austin 2025 CS2 Major Championship.",
+     "color": "ffd700",
+     "name": "attribute"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "The one-versus-two clutch from bLitz gets denied by mezii.",
+     "color": "ffd700",
+     "name": "attribute"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "The SSG08 bolt-action is a low-damage but very cost-effective sniper rifle, making it a smart choice for early-round long-range marksmanship. It has been custom painted with fictitious transit diagrams designed around the maps of Counter-Strike.\n\n<i>\"Where are we headed?\"</i>",
+     "name": "description"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "The Gallery Collection",
+     "color": "9da1a9",
+     "name": "itemset_name"
+    },
+    {
+     "type": "html",
+     "value": " ",
+     "name": "blank"
+    },
+    {
+     "type": "html",
+     "value": "<br><div id=\"sticker_info\" class=\"sticker_info\" style=\"border: 2px solid rgb(102, 102, 102); border-radius: 6px; width=100%; margin:4px; padding:8px;\"><center><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/stickers/sha2024/sig_broky_glitter.62665a009c7798608f2de900bae37440c6f29552.png\" title=\"Sticker: broky (Glitter) | Shanghai 2024\"><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/stickers/sha2024/sig_im_glitter.fc359127b34bb37decb62b17850d8bfc4ddac6c9.png\" title=\"Sticker: iM (Glitter) | Shanghai 2024\"><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/stickers/sha2024/sig_naf_glitter.16704f41aacc8b8ec8804ba989f772fea3bab70a.png\" title=\"Sticker: NAF (Glitter) | Shanghai 2024\"><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/stickers/sha2024/sig_ropz_glitter.326ca71083e3b0f3c6ba8db8bd92df92b0b22e25.png\" title=\"Sticker: ropz (Glitter) | Shanghai 2024\"><br>Sticker: broky (Glitter) | Shanghai 2024, iM (Glitter) | Shanghai 2024, NAF (Glitter) | Shanghai 2024, ropz (Glitter) | Shanghai 2024</center></div>",
+     "name": "sticker_info"
+    },
+    {
+     "type": "html",
+     "value": "<br><div id=\"keychain_info\" class=\"keychain_info\" style=\"border: 2px solid rgb(102, 102, 102); border-radius: 6px; width=100%; margin:4px; padding:8px;\"><center><img width=64 height=48 src=\"https://cdn.steamstatic.com/apps/730/icons/econ/keychains/aus2025/kc_aus2025.f24972c1734b5c65026c7b5218a97f6201e192d9.png\" title=\"Souvenir Charm: Austin 2025 Highlight | bLitz Almost The Hero\"><br>Souvenir Charm: Austin 2025 Highlight | bLitz Almost The Hero</center></div>",
+     "name": "keychain_info"
+    },
+    {
+     "type": "html",
+     "value": "<br><div id=\"highlight_reel\" class=\"highlight_reel\" style=\"border: 2px solid rgb(102, 102, 102); border-radius: 6px; width=100%; margin:4px; padding:8px;\"><center><a target=\"_blank\" href=\"https://cdn.steamstatic.com/apps/csgo/videos/highlightreels/024/089v122_011/024_089v122_011_de_mirage_aus2025_blitzclutchdeniedvsvitalityonmirage_ww_1080p.webm?v=1752707770\"><video class=\"highlight_reel_video\" style=\"width:100%\" autoplay preload=\"auto\" loop playsinline muted><source type=\"video/webm\" src=\"https://cdn.steamstatic.com/apps/csgo/videos/highlightreels/024/089v122_011/024_089v122_011_de_mirage_aus2025_blitzclutchdeniedvsvitalityonmirage_ww_480p.webm?v=1752707770\"></video></a></center></div>",
+     "name": "highlight_reel"
+    }
+   ],
+   "tradable": 1,
+   "actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "name": "StatTrak™ SSG 08 | Rapid Transit",
+   "name_color": "8847ff",
+   "type": "StatTrak™ Restricted Sniper Rifle",
+   "market_name": "StatTrak™ SSG 08 | Rapid Transit (Factory New)",
+   "market_hash_name": "StatTrak™ SSG 08 | Rapid Transit (Factory New)",
+   "market_actions": [
+    {
+     "link": "steam://run/730//+csgo_econ_action_preview%20%propid:6%",
+     "name": "Inspect in Game..."
+    }
+   ],
+   "commodity": 0,
+   "market_tradable_restriction": 7,
+   "market_marketable_restriction": 7,
+   "marketable": 1,
+   "tags": [
+    {
+     "category": "Type",
+     "internal_name": "CSGO_Type_SniperRifle",
+     "localized_category_name": "Type",
+     "localized_tag_name": "Sniper Rifle"
+    },
+    {
+     "category": "Weapon",
+     "internal_name": "weapon_ssg08",
+     "localized_category_name": "Weapon",
+     "localized_tag_name": "SSG 08"
+    },
+    {
+     "category": "ItemSet",
+     "internal_name": "set_community_34",
+     "localized_category_name": "Collection",
+     "localized_tag_name": "The Gallery Collection"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "strange",
+     "localized_category_name": "Category",
+     "localized_tag_name": "StatTrak™",
+     "color": "CF6A32"
+    },
+    {
+     "category": "Quality",
+     "internal_name": "highlight",
+     "localized_category_name": "Category",
+     "localized_tag_name": "Highlight",
+     "color": "FFD7AA"
+    },
+    {
+     "category": "Rarity",
+     "internal_name": "Rarity_Mythical_Weapon",
+     "localized_category_name": "Quality",
+     "localized_tag_name": "Restricted",
+     "color": "8847ff"
+    },
+    {
+     "category": "Exterior",
+     "internal_name": "WearCategory0",
+     "localized_category_name": "Exterior",
+     "localized_tag_name": "Factory New"
+    },
+    {
+     "category": "Tournament",
+     "internal_name": "Tournament24",
+     "localized_category_name": "Tournament",
+     "localized_tag_name": "BLAST.tv Austin 2025"
+    },
+    {
+     "category": "Tournament",
+     "internal_name": "Tournament23",
+     "localized_category_name": "Tournament",
+     "localized_tag_name": "Perfect World Shanghai 2024"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team89",
+     "localized_category_name": "Team",
+     "localized_tag_name": "Vitality"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team122",
+     "localized_category_name": "Team",
+     "localized_tag_name": "The MongolZ"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team61",
+     "localized_category_name": "Team",
+     "localized_tag_name": "FaZe Clan"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team12",
+     "localized_category_name": "Team",
+     "localized_tag_name": "Natus Vincere"
+    },
+    {
+     "category": "TournamentTeam",
+     "internal_name": "Team48",
+     "localized_category_name": "Team",
+     "localized_tag_name": "Team Liquid"
+    },
+    {
+     "category": "ProPlayer",
+     "internal_name": "broky",
+     "localized_category_name": "Professional Player",
+     "localized_tag_name": "broky (Helvijs Saukants)"
+    },
+    {
+     "category": "ProPlayer",
+     "internal_name": "im",
+     "localized_category_name": "Professional Player",
+     "localized_tag_name": "iM (Mihai Ivan)"
+    },
+    {
+     "category": "ProPlayer",
+     "internal_name": "naf",
+     "localized_category_name": "Professional Player",
+     "localized_tag_name": "NAF (Keith Markovic)"
+    },
+    {
+     "category": "ProPlayer",
+     "internal_name": "ropz",
+     "localized_category_name": "Professional Player",
+     "localized_tag_name": "ropz (Robin Kool)"
+    }
+   ],
+   "sealed": 0,
+   "market_bucket_group_name": "SSG 08 | Rapid Transit",
+   "market_bucket_group_id": "G18282080013004",
+   "sealed_type": 0,
+   "market_name_inside_group": "StatTrak™ Factory New",
+   "market_bucket_id": "1828208001300938CD99B3EA0348005000"
+  }
+ ],
+ "asset_properties": [
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54176784312",
+   "asset_properties": [
+    {
+     "propertyid": 1,
+     "int_value": "630"
+    },
+    {
+     "propertyid": 2,
+     "float_value": "0.368909507989883423"
+    },
+    {
+     "propertyid": 6,
+     "string_value": "3D2D8582FDD4F43C251F1DA837153C0D390588FECEC83E7DCB3955534D25D35E4031"
+    }
+   ]
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54244336397",
+   "asset_properties": [
+    {
+     "propertyid": 1,
+     "int_value": "735"
+    },
+    {
+     "propertyid": 2,
+     "float_value": "0.218922838568687439"
+    },
+    {
+     "propertyid": 6,
+     "string_value": "2535A8E3FEACEF243D1805A12F0D2615211DEAFFA5D62665FA204DB224553D0E131FFC"
+    }
+   ]
+  },
+  {
+   "appid": 730,
+   "contextid": "2",
+   "assetid": "54134636133",
+   "asset_properties": [
+    {
+     "propertyid": 1,
+     "int_value": "960"
+    },
+    {
+     "propertyid": 2,
+     "float_value": "0.00586022995412349701"
+    },
+    {
+     "propertyid": 6,
+     "string_value": "9C8C79602F49559D84B4BC1C9DB498AC95A430121C429FDC5C9BD49CCC9CFE85949E8C7AA38132DBBDA3B19C9CEC5DA19C371E20D97C82A120FE85949C8C06A381E788B2A3B19C9C985EA144ED4620D95CEDF0A0FE88949C8C52DC81CE2482A3A1D0E7B222D9D421FD21FE85949C8C7EA3816AB480A3B19C9CDC5CA13C830721D97CAD44A0F4B0EC943E9D8A949C8CB8A15A42EEDDD9D6360FA3D19D347DDCC47F9E0CA2621C"
+    }
+   ],
+   "asset_accessories": [
+    {
+     "classid": "6360297049",
+     "parent_relationship_properties": [
+      {
+       "propertyid": 4,
+       "float_value": "0.629999995231628418"
+      }
+     ]
+    },
+    {
+     "classid": "6360318866",
+     "parent_relationship_properties": [
+      {
+       "propertyid": 4,
+       "float_value": "0.680000007152557373"
+      }
+     ]
+    },
+    {
+     "classid": "6360322257",
+     "parent_relationship_properties": [
+      {
+       "propertyid": 4,
+       "float_value": "0.620000004768371582"
+      }
+     ]
+    },
+    {
+     "classid": "6360300872",
+     "parent_relationship_properties": [
+      {
+       "propertyid": 4,
+       "float_value": "0.610000014305114746"
+      }
+     ]
+    },
+    {
+     "classid": "7240988196",
+     "instanceid": "236997301"
+    }
+   ]
+  }
+ ],
+ "more_items": 1,
+ "last_assetid": "54134636133",
+ "total_inventory_count": 5,
+ "success": 1,
+ "rwgrsn": -2
+}
