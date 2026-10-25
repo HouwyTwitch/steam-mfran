@@ -105,6 +105,11 @@ class LiveBackend:
     async def invite_action(self, action: str, steamids: list[int]) -> dict[int, str | None]:
         return await self._with_session(lambda: self.community.friend_action(action, steamids))
 
+    async def remove_friend(self, steamid: int) -> None:
+        await self._with_session(lambda: self.community.remove_friend(steamid))
+        # The CM pushes the relationship change too; don't wait for it.
+        self.chat.friends.pop(steamid, None)
+
     async def fetch_profile(self, steamid: int) -> ProfileInfo:
         await self.profile_limiter.wait()
         return await self.community.get_profile(steamid)

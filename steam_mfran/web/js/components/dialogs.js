@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from "../../vendor/preact.js";
-import { dialog, broadcasts, personas, go, toastError, toast, personaOf, rememberPersonas } from "../store.js";
+import { dialog, broadcasts, personas, go, toastError, toast, personaOf, rememberPersonas, removeFriend, conversations } from "../store.js";
 import { api, post } from "../api.js";
 import { plural } from "../format.js";
 import { Icon, Avatar, Loader, Check, Dialog, AsyncButton } from "./ui.js";
@@ -10,7 +10,8 @@ const close = () => (dialog.value = null);
 export function Dialogs() {
   const d = dialog.value;
   if (!d) return null;
-  const C = { broadcast: BroadcastDialog, acceptMessage: AcceptMessageDialog, newChat: NewChatDialog, confirm: ConfirmDialog }[d.type];
+  const C = { broadcast: BroadcastDialog, acceptMessage: AcceptMessageDialog, newChat: NewChatDialog, confirm: ConfirmDialog,
+    removeFriend: RemoveFriendDialog }[d.type];
   return C ? html`<${C} ...${d.props} />` : null;
 }
 
@@ -164,6 +165,29 @@ function NewChatDialog() {
   const friends = useFriends();
   return html`<${Dialog} title="New message" icon="edit" onClose=${close} width=${480}>
     <${FriendPicker} friends=${friends} multi=${false} onPick=${(sid) => { close(); go("chats", sid); }} />
+  <//>`;
+}
+
+function RemoveFriendDialog({ steamid }) {
+  const hasChat = conversations.value.some((c) => c.partner === steamid);
+  const [alsoHideChat, setAlsoHideChat] = useState(true);
+  const p = personas.value.get(steamid) || personaOf(steamid);
+  const remove = async () => {
+    try {
+      await removeFriend(steamid, { alsoHideChat: hasChat && alsoHideChat });
+      close();
+    } catch (e) {
+      toastError(e);
+    }
+  };
+  return html`<${Dialog} title="Remove friend?" icon="person_remove" onClose=${close} width=${460}
+    footer=${html`<button class="btn text" onClick=${close}>Cancel</button>
+      <${AsyncButton} class="btn danger-filled" onClick=${remove}><${Icon} name="person_remove" />Remove friend<//>`}>
+    <div class="row" style="gap:14px;margin-bottom:14px"><${Avatar} src=${p.avatar} size=${48} round name=${p.name} />
+      <span class="title-m ellipsis">${p.name || steamid}</span></div>
+    <p class="body-m" style="margin:0 0 14px">You’ll stop being friends on Steam. Your chat history stays, and to be friends again one of you has to send a new friend request.</p>
+    ${hasChat ? html`<div class="row" style="gap:10px;cursor:pointer" onClick=${() => setAlsoHideChat(!alsoHideChat)}>
+      <${Check} on=${alsoHideChat} onClick=${() => setAlsoHideChat(!alsoHideChat)} label="Also remove the chat" /><span class="body-m">Also remove the chat from the list</span></div>` : null}
   <//>`;
 }
 

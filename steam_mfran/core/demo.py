@@ -311,10 +311,21 @@ class DemoBackend:
                 self.chat.add_friend(sid, d["name"], d["avatar"], 1)
         return out
 
+    async def remove_friend(self, steamid: int) -> None:
+        await asyncio.sleep(0.4)
+        if self.chat.friends.pop(steamid, None) is None:
+            raise SteamError("You are not friends with this user")
+        if self.chat.on_relationships:
+            self.chat.on_relationships({steamid: EFriendRelationship.NoRelationship}, False)
+        self.emit("friends", {"incremental": True})
+
     async def fetch_profile(self, steamid: int) -> ProfileInfo:
         await asyncio.sleep(self.rng.uniform(0.2, 0.7))
-        d = self.invites.get(steamid) or {"name": "?", "avatar": _avatar("?"), "level": 0}
         r = random.Random(steamid)
+        friend = self.chat.personas.get(steamid)
+        d = self.invites.get(steamid) or (
+            {"name": friend["name"], "avatar": friend["avatar"], "level": r.choice([3, 9, 14, 27, 42, 65, 110])}
+            if friend else {"name": "?", "avatar": _avatar("?"), "level": 0})
         years = r.choice([0.05, 0.2, 0.6, 1, 2, 3, 5, 8, 11, 14])
         return ProfileInfo(
             steamid=steamid, name=d["name"], avatar=d["avatar"], level=d["level"],

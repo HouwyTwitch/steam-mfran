@@ -15,7 +15,7 @@ from typing import Any, Callable
 import aiohttp
 from bs4 import BeautifulSoup
 
-from .http import COMMUNITY, RateLimited, SessionExpired, SteamError, SteamHttp
+from .http import COMMUNITY, COMMUNITY_XHR_HEADERS, RateLimited, SessionExpired, SteamError, SteamHttp
 from .ids import from_account_id, to_account_id
 
 log = logging.getLogger(__name__)
@@ -317,6 +317,24 @@ class Community:
             raise
         except SteamError as exc:
             return str(exc)
+
+    async def remove_friend(self, steamid: int) -> None:
+        """Unfriend someone, as the "Remove Friend" button on their profile does."""
+        resp, body = await self.http.request(
+            "POST", f"{COMMUNITY}/actions/RemoveFriendAjax",
+            data={"sessionID": self.http.session_id, "steamid": str(steamid)},
+            headers={**COMMUNITY_XHR_HEADERS, "Origin": COMMUNITY, "Referer": f"{COMMUNITY}/profiles/{steamid}"},
+            allow_redirects=False,
+        )
+        self._check_logged_in(resp)
+        if resp.status != 200:
+            raise SteamError(f"Steam answered HTTP {resp.status} to the unfriend request")
+        try:
+            payload = json.loads(body or b"null")
+        except ValueError:
+            return  # an empty or non-JSON 200 means it went through
+        if payload is False or (isinstance(payload, dict) and payload.get("success") in (False, 0)):
+            raise SteamError((isinstance(payload, dict) and payload.get("error_text")) or "Steam refused to remove this friend")
 
     # ------------------------------------------------------------ profiles
     async def get_miniprofile(self, steamid: int) -> dict[str, Any]:
