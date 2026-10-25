@@ -1,6 +1,7 @@
 """AppService + HTTP API against the demo backend."""
 
 import asyncio
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,6 +11,7 @@ from steam_mfran.core.events import EventHub
 from steam_mfran.core.service import AppService
 from steam_mfran.core.settings import Rule, RuleConditions, SettingsStore
 from steam_mfran.server import create_app
+from steam_mfran.steam.http import SteamError
 from steam_mfran.storage import JsonStore
 
 
@@ -71,6 +73,45 @@ async def test_automation_rules_apply_after_analysis(service):
     assert any(h["source"] == "rule: no private" for h in service.history)
 
 
+async def test_removed_chat_returns_with_next_message(service, tmp_path):
+    convs = await service.conversations()
+    partner = convs[-1]["partner"]
+    await service.hide_chat(int(partner), convs[-1]["last_message"])
+    assert partner not in [c["partner"] for c in await service.conversations()]
+    assert JsonStore(tmp_path / "chat_hidden.json").load({}) == {partner: convs[-1]["last_message"]}
+
+    await service.backend.chat.send(int(partner), "still there?")
+    assert partner not in service.hidden_chats
+    assert partner in [c["partner"] for c in await service.conversations()]
+
+
+async def test_message_in_the_same_second_unhides_chat(service):
+    partner = (await service.conversations())[-1]["partner"]
+    await service.hide_chat(int(partner), int(time.time()) + 60)  # newest message shares the hidden timestamp
+    await service.backend.chat.send(int(partner), "ping")
+    assert partner in [c["partner"] for c in await service.conversations()]
+
+
+async def test_chat_partners_get_level_and_inventory(service):
+    convs = await service.conversations()
+    sids = [int(c["partner"]) for c in convs]
+    assert any(c["info"]["pending"] for c in convs)
+    await wait_for(lambda: not any(service._needs_partner_info(s) or service.partner_info(s)["pending"] for s in sids), 40)
+    infos = [c["info"] for c in await service.conversations()]
+    assert all(i["level"] for i in infos) and all(i["friend"] is True for i in infos)
+    assert all(i["inventory"] or i["error"] for i in infos)
+    assert any(i["inventory"] and i["inventory"]["state"] in ("ok", "empty", "private") for i in infos)
+
+
+async def test_remove_friend(service):
+    sid = int((await service.conversations())[0]["partner"])
+    await service.remove_friend(sid)
+    assert service.partner_info(sid)["friend"] is False
+    assert str(sid) not in {f["steamid"] for f in service.friends()}
+    with pytest.raises(SteamError):
+        await service.remove_friend(sid)
+
+
 def test_http_api_demo_flow(tmp_path):
     app = create_app(tmp_path, demo=True)
     with TestClient(app, base_url="http://127.0.0.1:8777") as client:
@@ -93,6 +134,15 @@ def test_http_api_demo_flow(tmp_path):
         r = client.post(f"/api/chat/{convs[0]['partner']}/image", files={"file": ("a.png", png, "image/png")})
         assert r.status_code == 200 and r.json()["url"].startswith("data:image/png")
         assert client.post(f"/api/chat/{convs[0]['partner']}/image", files={"file": ("a.txt", b"hello", "text/plain")}).status_code == 400
+        convs = client.get("/api/chat/conversations").json()
+        quiet = convs[-1]["partner"]
+        assert convs[-1]["info"]["friend"] is True
+        assert client.post(f"/api/chat/{quiet}/hide", json={"last_message": convs[-1]["last_message"]}).json() == {"ok": True}
+        assert quiet not in [c["partner"] for c in client.get("/api/chat/conversations").json()]
+        assert client.delete(f"/api/chat/{quiet}/hide").status_code == 200
+        assert quiet in [c["partner"] for c in client.get("/api/chat/conversations").json()]
+        assert client.post(f"/api/friends/{quiet}/remove").json() == {"ok": True}
+        assert client.post(f"/api/friends/{quiet}/remove").status_code == 502
         s = client.put("/api/settings", json={"currency": "eur", "theme": "dark"}).json()
         assert s["currency"] == "EUR" and s["theme"] == "dark"
         assert client.get("/").status_code == 200

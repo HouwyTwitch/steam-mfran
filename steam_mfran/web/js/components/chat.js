@@ -1,12 +1,13 @@
 import { html, useState, useEffect, useRef, useLayoutEffect, useMemo } from "../../vendor/preact.js";
 import {
-  conversations, conversationsLoaded, messages, typing, unread, personas, route, go, dialog, chatStatus,
+  conversations, conversationsLoaded, messages, typing, unread, personas, partners, route, go, dialog, chatStatus,
   loadConversations, loadMessages, markRead, addPendingMessage, failPendingMessage, removeMessage, personaOf, stripBB, toastError, toast,
+  hideChat,
 } from "../store.js";
 import { api, post } from "../api.js";
-import { shortTime, clock, dayLabel, ago } from "../format.js";
+import { shortTime, clock, dayLabel, ago, money, plural } from "../format.js";
 import { BBCode, isMediaOnly } from "../bbcode.js";
-import { Icon, Avatar, Loader, Empty, MenuButton } from "./ui.js";
+import { Icon, Avatar, Loader, Empty, MenuButton, Level } from "./ui.js";
 
 const STATE_LABEL = { 0: "Offline", 1: "Online", 2: "Busy", 3: "Away", 4: "Snooze", 5: "Looking to trade", 6: "Looking to play" };
 const statusOf = (p) => (p.game ? "ingame" : p.state);
@@ -48,15 +49,29 @@ function ConversationList({ active }) {
   </section>`;
 }
 
+/** CS2 inventory value of a chat partner: amount, lock when private, shimmer while it is looked up. */
+function Worth({ info }) {
+  const inv = info?.inventory;
+  if (inv?.state === "ok" || inv?.state === "empty")
+    return html`<span class=${`worth ${(inv.value || 0) >= 100 ? "rich" : ""}`} title=${`CS2 inventory · ${plural(inv.total_count || 0, "item")}`}>${money(inv.value, { compact: true })}</span>`;
+  if (inv?.state === "private") return html`<span class="worth" title="Private CS2 inventory"><${Icon} name="lock" fill size="xs" /></span>`;
+  if (info?.pending) return html`<span class="worth skeleton" aria-label="Looking up inventory value"></span>`;
+  if (info?.error) return html`<span class="worth" title=${`Inventory unavailable: ${info.error}`}>—</span>`;
+  return null;
+}
+
 function ConvItem({ c, active }) {
   const p = personas.value.get(c.partner) || personaOf(c.partner);
+  const info = partners.value.get(c.partner);
   const n = unread.value.get(c.partner) || 0;
   const isTyping = (typing.value.get(c.partner) || 0) > Date.now();
   return html`<button class=${`conv ${active ? "active" : ""} ${n ? "unread" : ""}`} onClick=${() => go("chats", c.partner)}>
     <${Avatar} src=${p.avatar} size=${46} status=${statusOf(p) ?? null} round name=${p.name} />
-    <div class="col grow" style="gap:1px">
-      <div class="row"><span class="who ellipsis grow">${p.name || c.partner}</span><span class="time">${shortTime(c.last_message)}</span></div>
-      <div class="row"><span class="preview ellipsis grow">${isTyping ? html`<em>typing…</em>` : c.preview ? `${c.preview_out ? "You: " : ""}${stripBB(c.preview)}` : p.game ? `Playing ${p.game}` : ""}</span>
+    <div class="col grow" style="gap:1px;min-width:0">
+      <div class="row" style="gap:6px">${info?.level != null ? html`<${Level} level=${info.level} sm />` : null}
+        <span class="who ellipsis grow">${p.name || c.partner}</span><span class="time">${shortTime(c.last_message)}</span></div>
+      <div class="row" style="gap:6px"><span class="preview ellipsis grow">${isTyping ? html`<em>typing…</em>` : c.preview ? `${c.preview_out ? "You: " : ""}${stripBB(c.preview)}` : p.game ? `Playing ${p.game}` : ""}</span>
+        <${Worth} info=${info} />
         ${n ? html`<span class="badge">${n}</span>` : null}</div>
     </div>
   </button>`;
@@ -82,6 +97,7 @@ function groupMessages(items) {
 function ChatPane({ partner }) {
   const thread = messages.value.get(partner);
   const p = personas.value.get(partner) || personaOf(partner);
+  const info = partners.value.get(partner);
   const isTyping = (typing.value.get(partner) || 0) > Date.now();
   const scroller = useRef();
   const stick = useRef(true);
@@ -127,12 +143,16 @@ function ChatPane({ partner }) {
     <header class="chat-head">
       <button class="icon-btn" aria-label="Back" onClick=${() => go("chats")}><${Icon} name="arrow_back" /></button>
       <${Avatar} src=${p.avatar} size=${42} status=${statusOf(p) ?? null} round name=${p.name} />
-      <div class="col grow" style="gap:0"><span class="title-m ellipsis">${p.name || partner}</span><span class="body-s muted ellipsis">${isTyping ? "typing…" : statusText}</span></div>
+      <div class="col grow" style="gap:0;min-width:0"><span class="title-m ellipsis">${p.name || partner}</span><span class="body-s muted ellipsis">${isTyping ? "typing…" : statusText}</span></div>
+      ${info?.level != null || info?.inventory ? html`<div class="head-stats">${info.level != null ? html`<${Level} level=${info.level} />` : null}<${Worth} info=${info} /></div>` : null}
       <a class="icon-btn" href=${`https://steamcommunity.com/profiles/${partner}/`} target="_blank" rel="noreferrer" title="Steam profile" aria-label="Steam profile"><${Icon} name="open_in_new" /></a>
       <${MenuButton} items=${[
         { icon: "campaign", label: "Broadcast to this & others…", onClick: () => (dialog.value = { type: "broadcast", props: { preselect: [partner] } }) },
         { icon: "backpack", label: "View inventory on Steam", href: `https://steamcommunity.com/profiles/${partner}/inventory/#730` },
         { icon: "refresh", label: "Reload history", onClick: () => { messages.value = new Map([...messages.value].filter(([k]) => k !== partner)); loadMessages(partner); } },
+        "sep",
+        { icon: "speaker_notes_off", label: "Remove chat", onClick: () => hideChat(partner).catch(toastError) },
+        info?.friend !== false && { icon: "person_remove", label: "Remove friend…", danger: true, onClick: () => (dialog.value = { type: "removeFriend", props: { steamid: partner } }) },
       ]} />
     </header>
     <div class="messages" ref=${scroller} onScroll=${onScroll}>

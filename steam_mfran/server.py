@@ -64,6 +64,10 @@ class AckBody(BaseModel):
     timestamp: int
 
 
+class HideBody(BaseModel):
+    last_message: int | None = None
+
+
 class BroadcastBody(BaseModel):
     steamids: list[str] = Field(min_length=1, max_length=500)
     text: str = Field(min_length=1, max_length=4000)
@@ -252,6 +256,24 @@ def create_app(
         require_auth()
         with contextlib.suppress(SteamError, asyncio.TimeoutError):
             await backend.chat.ack(_sid(steamid), body.timestamp)
+        return {"ok": True}
+
+    @app.post("/api/chat/{steamid}/hide")
+    async def hide_chat(steamid: str, body: HideBody) -> dict[str, Any]:
+        require_auth()
+        await service.hide_chat(_sid(steamid), body.last_message)
+        return {"ok": True}
+
+    @app.delete("/api/chat/{steamid}/hide")
+    async def unhide_chat(steamid: str) -> dict[str, Any]:
+        require_auth()
+        service.unhide_chat(_sid(steamid))
+        return {"ok": True}
+
+    @app.post("/api/friends/{steamid}/remove")
+    async def remove_friend(steamid: str) -> dict[str, Any]:
+        require_auth()
+        await service.remove_friend(_sid(steamid))
         return {"ok": True}
 
     @app.post("/api/chat/{steamid}/image")

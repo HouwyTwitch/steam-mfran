@@ -25,6 +25,9 @@ It runs locally: a Python backend (FastAPI + aiohttp) talks to Steam, and a brow
 - **Automation rules.** Example: *"Ignore level-0 accounts with private inventories"* or *"Accept anyone with ≥ $500 and no VAC ban, then send them a message"*. You can preview matches, run rules on demand, or apply them automatically as each request is analysed.
 - **Steam chat** in the browser:
   - Conversations with unread counts, typing indicators and presence
+  - Each chat partner's **Steam level and CS2 inventory value** in the list, looked up in the background when friend-request analysis is idle
+  - **Remove chat** hides a conversation until the next message arrives; it then comes back with its full history
+  - **Remove friend** from the chat menu, optionally removing the chat at the same time
   - Full history with infinite scroll
   - Steam BBCode rendering (images, emoticons, stickers, spoilers, quotes, links)
   - **Image attachments**: picker, paste, or drag & drop
@@ -88,6 +91,7 @@ Step 4 is repeatable while the refresh token is valid (months), so on startup, a
 | CS2 inventory | `steamcommunity.com/inventory/<id>/730/2` (paged, rate-limited, cached) |
 | Prices | csgotrader.app Steam prices (default), Skinport, Market.CSGO, or the live Steam Market (`priceoverview`, slow) |
 | Chat | Steam CM WebSocket, logged on as a *web* client with the token from `/chat/clientjstoken`, the same way steamcommunity.com/chat works: `FriendMessages.SendMessage/GetRecentMessages/GetActiveMessageSessions/AckMessage` and `FriendMessagesClient.IncomingMessage` notifications. If the CM link is down, MFRAN falls back to the `IFriendMessagesService` WebAPI and polls. |
+| Remove friend | `POST actions/RemoveFriendAjax` (`sessionID`, `steamid`), as the profile page's "Remove Friend" button does |
 | Chat images | `chat/beginfileupload` → PUT to Steam's CDN → `chat/commitfileupload` (Steam posts the image into the conversation) |
 
 The protobuf messages are described in `steam_mfran/steam/proto.py` with a small built-in codec, so there is no generated code. Their field numbers are checked against the official definitions from [SteamDatabase/Protobufs](https://github.com/SteamDatabase/Protobufs).

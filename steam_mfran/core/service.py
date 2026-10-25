@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 import uuid
@@ -90,6 +91,15 @@ class AppService:
         self.refresh_error: str | None = None
         self.currency: dict[str, Any] = {"code": "USD", "rate": 1.0}
         self._previews: dict[str, tuple[Any, str, bool]] = {}
+        # partner -> last_message timestamp the chat was removed at; it returns once newer messages exist
+        self._hidden_store = JsonStore(data_dir / "chat_hidden.json")
+        self.hidden_chats: dict[str, int] = self._hidden_store.load({}) or {}
+        # Level / inventory lookups for chat partners, run when friend-request analysis is idle
+        self._partner_queue = AnalysisQueue()
+        self._partner_busy: int | None = None
+        self._partner_failed: dict[int, tuple[float, str]] = {}
+        self._analysing = 0
+        hub.listen(self._on_event)
 
     def emit(self, type_: str, data: Any = None) -> None:
         self.hub.emit(type_, data)
@@ -110,6 +120,7 @@ class AppService:
             asyncio.create_task(self._worker(), name=f"analysis-{i}") for i in range(s.analysis_workers)
         ]
         self._tasks.append(asyncio.create_task(self._warm_prices(), name="prices-warmup"))
+        self._tasks.append(asyncio.create_task(self._partner_worker(), name="chat-partners"))
 
     async def _start_backend(self) -> None:
         try:
@@ -291,12 +302,15 @@ class AppService:
     async def _worker(self) -> None:
         while True:
             sid = await self.queue.pop()
+            self._analysing += 1
             try:
                 await self._analyze(sid)
             except asyncio.CancelledError:
                 raise
             except Exception:  # noqa: BLE001
                 log.exception("Analysis of %s crashed", sid)
+            finally:
+                self._analysing -= 1
 
     def _set_analysis(self, rec: dict[str, Any], state: str, **extra: Any) -> None:
         rec["analysis"] = {"state": state, **extra}
@@ -541,10 +555,15 @@ class AppService:
     # ------------------------------------------------------------ chat
     async def conversations(self) -> list[dict[str, Any]]:
         chat = self.backend.chat
-        sessions = await chat.sessions()
+        sessions = self._visible_sessions(await chat.sessions())
+        sessions.sort(key=lambda s: s.get("last_message", 0), reverse=True)
+        for s in sessions:  # most recent chats get their level / inventory looked up first
+            if self._needs_partner_info(int(s["partner"])):
+                self._partner_queue.push(int(s["partner"]))
         missing = []
         for s in sessions:
             sid = int(s["partner"])
+            s["info"] = self.partner_info(sid)
             persona = chat.personas.get(sid)
             if not persona:
                 missing.append(sid)
@@ -552,9 +571,115 @@ class AppService:
             s["persona"] = persona or {"steamid": s["partner"], "name": rec.get("name") or "", "avatar": rec.get("avatar") or ""}
         if missing:
             asyncio.ensure_future(chat.request_personas(missing))
-        sessions.sort(key=lambda s: s.get("last_message", 0), reverse=True)
         await self._attach_previews(sessions[:25])
         return sessions
+
+    def _visible_sessions(self, sessions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Drop removed chats; forget the removal once a newer message exists."""
+        out, changed = [], False
+        for s in sessions:
+            hidden_at = self.hidden_chats.get(s["partner"])
+            if hidden_at is not None and s.get("last_message", 0) <= hidden_at:
+                continue
+            if hidden_at is not None:
+                del self.hidden_chats[s["partner"]]
+                changed = True
+            out.append(s)
+        if changed:
+            self._hidden_store.save(self.hidden_chats)
+        return out
+
+    async def hide_chat(self, sid: int, last_message: int | None = None) -> None:
+        """Remove a chat from the list until a new message arrives. Steam keeps the history."""
+        last = int(last_message or time.time())
+        self.hidden_chats[str(sid)] = last
+        self._hidden_store.save(self.hidden_chats)
+        self.emit("chat:hidden", {"partner": str(sid)})
+        with contextlib.suppress(Exception):  # clearing the unread badge is best effort
+            await self.backend.chat.ack(sid, last)
+
+    def unhide_chat(self, sid: int) -> None:
+        if self.hidden_chats.pop(str(sid), None) is not None:
+            self._hidden_store.save(self.hidden_chats)
+
+    def _on_event(self, type_: str, data: Any) -> None:
+        # A message newer than the removal brings the chat back, even within the same second.
+        if type_ == "chat:message" and isinstance(data, dict) and data.get("partner") in self.hidden_chats:
+            self.unhide_chat(int(data["partner"]))
+
+    async def remove_friend(self, sid: int) -> None:
+        await self.backend.remove_friend(sid)
+        self.emit("chat:partner", self.partner_info(sid))
+
+    # ------------------------------------------------------------ chat partner level & inventory
+    def partner_info(self, sid: int) -> dict[str, Any]:
+        cache = self._cache.get(str(sid)) or {}
+        inv = cached_inventory(cache)
+        failed = self._partner_failed.get(sid)
+        chat = self.backend.chat
+        rel = chat.friends.get(sid)
+        known = getattr(chat, "friends_loaded", True)
+        return {
+            "steamid": str(sid),
+            "level": (cache.get("profile") or {}).get("level"),
+            "inventory": {k: inv.get(k) for k in ("state", "value", "total_count")} if inv else None,
+            "pending": sid in self._partner_queue or sid == self._partner_busy,
+            "error": failed[1] if failed and not inv else None,
+            "friend": rel == EFriendRelationship.Friend if (rel is not None or known) else None,
+        }
+
+    def _needs_partner_info(self, sid: int) -> bool:
+        failed = self._partner_failed.get(sid)
+        if failed and time.time() - failed[0] < 900:
+            return False
+        cache = self._cache.get(str(sid)) or {}
+        now = time.time()
+        ttl = self.settings.value.inventory_cache_hours * 3600
+        return (not cache.get("profile") or now - cache.get("profile_at", 0) > 24 * 3600
+                or not cached_inventory(cache) or now - cache.get("inventory_at", 0) > ttl)
+
+    async def _partner_worker(self) -> None:
+        while True:
+            sid = await self._partner_queue.pop()
+            # Friend requests come first: both share Steam's rate limits.
+            while len(self.queue) or self._analysing or not self.authenticated:
+                await asyncio.sleep(2)
+            self._partner_busy = sid
+            self.emit("chat:partner", self.partner_info(sid))
+            try:
+                await self._fetch_partner_info(sid)
+            except asyncio.CancelledError:
+                raise
+            except RateLimited as exc:
+                wait = exc.retry_after or self._rate_backoff
+                if hasattr(self.backend, "inventory_limiter"):
+                    self.backend.inventory_limiter.penalize(wait)
+                self._partner_queue.push(sid)
+                self._partner_busy = None
+                await asyncio.sleep(wait)
+                continue
+            except Exception as exc:  # noqa: BLE001
+                log.info("Chat partner %s lookup failed: %s", sid, exc)
+                self._partner_failed[sid] = (time.time(), friendly(exc))
+            self._partner_busy = None
+            self.emit("chat:partner", self.partner_info(sid))
+
+    async def _fetch_partner_info(self, sid: int) -> None:
+        cache = self._cache.setdefault(str(sid), {})
+        now = time.time()
+        if not cache.get("profile") or now - cache.get("profile_at", 0) > 24 * 3600:
+            profile = await self.backend.fetch_profile(sid)
+            cache["profile"], cache["profile_at"] = profile.to_dict(), time.time()
+            self.emit("chat:partner", self.partner_info(sid))  # the level shows before the slower inventory
+        ttl = self.settings.value.inventory_cache_hours * 3600
+        if not cached_inventory(cache) or now - cache.get("inventory_at", 0) > ttl:
+            inv = await self.backend.fetch_inventory(sid)
+            if inv.state == "error":
+                self._partner_failed[sid] = (time.time(), inv.error or "inventory unavailable")
+            else:
+                store_inventory(cache, summarize(inv))
+                self._partner_failed.pop(sid, None)
+        self._save_cache_soon()
 
     async def _attach_previews(self, sessions: list[dict[str, Any]]) -> None:
         """Last message text for the conversation list (cached per last_message time)."""

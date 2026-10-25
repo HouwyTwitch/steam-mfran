@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, Callable
 
 log = logging.getLogger(__name__)
 
@@ -12,7 +12,12 @@ log = logging.getLogger(__name__)
 class EventHub:
     def __init__(self, max_queue: int = 1000):
         self._clients: set[asyncio.Queue] = set()
+        self._listeners: list[Callable[[str, Any], None]] = []
         self._max = max_queue
+
+    def listen(self, callback: Callable[[str, Any], None]) -> None:
+        """Call ``callback(type, data)`` synchronously for every event."""
+        self._listeners.append(callback)
 
     def subscribe(self) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue(self._max)
@@ -24,6 +29,11 @@ class EventHub:
 
     def emit(self, type_: str, data: Any = None) -> None:
         event = {"type": type_, "data": data}
+        for listener in self._listeners:
+            try:
+                listener(type_, data)
+            except Exception:  # noqa: BLE001 - a broken listener must not stop the UI feed
+                log.exception("Event listener failed on %s", type_)
         for q in list(self._clients):
             try:
                 q.put_nowait(event)

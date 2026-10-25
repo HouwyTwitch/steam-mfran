@@ -18,8 +18,8 @@ export function Avatar({ src, size = 40, status, round, alt = "", name = "" }) {
   </div>`;
 }
 
-export const Level = ({ level, lg }) =>
-  html`<span class=${`level ${lg ? "lg" : ""} ${level >= 100 ? "wide" : ""}`} style=${`--c:${levelColor(level)}`} title=${level == null ? "Level unknown" : `Steam level ${level}`}>${level ?? "?"}</span>`;
+export const Level = ({ level, lg, sm }) =>
+  html`<span class=${`level ${lg ? "lg" : ""} ${sm ? "sm" : ""} ${level >= 100 ? "wide" : ""}`} style=${`--c:${levelColor(level)}`} title=${level == null ? "Level unknown" : `Steam level ${level}`}>${level ?? "?"}</span>`;
 
 export const Loader = ({ size = 40, contained, onColor }) =>
   html`<span class=${`loader ${contained ? "contained" : ""} ${onColor ? "on-color" : ""}`} style=${`--s:${size}px`} role="progressbar" aria-label="Loading"><i></i></span>`;

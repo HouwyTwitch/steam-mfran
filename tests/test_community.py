@@ -10,7 +10,7 @@ from steam_mfran.steam.community import (
     parse_pending_page,
     parse_profile_xml,
 )
-from steam_mfran.steam.http import COMMUNITY, SessionExpired
+from steam_mfran.steam.http import COMMUNITY, SessionExpired, SteamError
 
 from .conftest import Reply
 
@@ -106,6 +106,31 @@ async def test_bulk_friend_action_matches_browser_request(fake_http):
     assert len(body) == 114
     assert body.startswith(f"sessionid={fake_http.session_id}&steamid={ME}&ajax=1&action=accept&steamids%5B%5D=")
     assert call.kwargs["headers"]["X-Requested-With"] == "XMLHttpRequest"
+
+
+async def test_remove_friend_matches_browser_request(fake_http):
+    friend = 76561198000004242
+    calls = []
+    fake_http.route("POST", f"{COMMUNITY}/actions/RemoveFriendAjax", lambda c: calls.append(c) or Reply(body="true"))
+    await Community(fake_http, lambda: ME).remove_friend(friend)
+
+    (call,) = calls
+    assert urlencode(call.kwargs["data"]) == f"sessionID={fake_http.session_id}&steamid={friend}"
+    headers = call.kwargs["headers"]
+    assert headers["X-Requested-With"] == "XMLHttpRequest" and headers["Origin"] == COMMUNITY
+    assert headers["Referer"] == f"{COMMUNITY}/profiles/{friend}"
+
+
+@pytest.mark.parametrize("reply,error", [
+    (Reply(body="false"), SteamError),
+    (Reply(body={"success": 0, "error_text": "Not friends"}), SteamError),
+    (Reply(status=500, body=""), SteamError),
+    (Reply(status=403, body=""), SessionExpired),
+])
+async def test_remove_friend_failures(fake_http, reply, error):
+    fake_http.route("POST", f"{COMMUNITY}/actions/RemoveFriendAjax", lambda c: reply)
+    with pytest.raises(error):
+        await Community(fake_http, lambda: ME).remove_friend(76561198000004242)
 
 
 async def test_bulk_failure_falls_back_to_single_endpoints(fake_http):

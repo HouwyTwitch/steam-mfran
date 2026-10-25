@@ -1,6 +1,6 @@
 // Global reactive state (Preact signals) + server event reducers.
 import { signal, computed, batch } from "../vendor/preact.js";
-import { api } from "./api.js";
+import { api, post } from "./api.js";
 
 export const online = signal(false); // websocket to our server
 export const booted = signal(false);
@@ -22,6 +22,7 @@ export const conversationsLoaded = signal(false);
 export const messages = signal(new Map()); // partner -> {items, more, loaded, loading}
 export const typing = signal(new Map()); // partner -> expires (ms)
 export const unread = signal(new Map()); // partner -> count
+export const partners = signal(new Map()); // partner -> {level, inventory, pending, error, friend}
 export const selection = signal(new Set());
 export const toasts = signal([]);
 export const detailId = signal(null);
@@ -124,6 +125,7 @@ export function handleEvent(ev) {
         conversations.value = [];
         conversationsLoaded.value = false;
         messages.value = new Map();
+        partners.value = new Map();
       }
       break;
     }
@@ -174,6 +176,12 @@ export function handleEvent(ev) {
       onChatMessage(d);
       break;
     case "friends":
+      break;
+    case "chat:partner":
+      setMap(partners, d.steamid, d);
+      break;
+    case "chat:hidden":
+      dropConversation(d.partner);
       break;
   }
 }
@@ -245,6 +253,7 @@ export async function loadConversations() {
       unread.value = u;
       for (const c of list) {
         if (c.persona?.name && !personas.value.has(c.partner)) setMap(personas, c.partner, c.persona);
+        if (c.info) setMap(partners, c.partner, c.info);
       }
       conversationsLoaded.value = true;
     });
@@ -280,6 +289,33 @@ export async function loadMessages(partner, older = false) {
   } catch (e) {
     setMap(messages, partner, { ...thread, loading: false, loaded: true, error: e.message });
   }
+}
+
+function dropConversation(partner) {
+  batch(() => {
+    conversations.value = conversations.value.filter((c) => c.partner !== partner);
+    setMap(unread, partner, undefined);
+    setMap(messages, partner, undefined); // reloaded in full if the chat comes back
+    if (route.value.name === "chats" && route.value.id === partner) go("chats");
+  });
+}
+
+/** Remove a chat from the list; it comes back, history included, with the next message. */
+export async function hideChat(partner) {
+  const conv = conversations.value.find((c) => c.partner === partner);
+  const last = Math.max(conv?.last_message || 0, ...(messages.value.get(partner)?.items || []).filter((m) => !m.pending).map((m) => m.timestamp));
+  await api(`/chat/${partner}/hide`, { method: "POST", body: { last_message: last || null } });
+  dropConversation(partner);
+  toast(`Chat with ${personaOf(partner).name || partner} removed`, {
+    action: { label: "Undo", onClick: () => api(`/chat/${partner}/hide`, { method: "DELETE" }).then(loadConversations, toastError) },
+  });
+}
+
+export async function removeFriend(partner, { alsoHideChat = false } = {}) {
+  const name = personaOf(partner).name || partner;
+  await post(`/friends/${partner}/remove`);
+  if (alsoHideChat && conversations.value.some((c) => c.partner === partner)) await hideChat(partner).catch(toastError);
+  toast(`${name} is no longer your friend`);
 }
 
 export function markRead(partner) {
